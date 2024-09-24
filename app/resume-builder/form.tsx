@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { db, auth } from "@/firebase";
 import { doc, onSnapshot, query, where, collection } from "firebase/firestore";
@@ -8,11 +8,12 @@ import { doc, onSnapshot, query, where, collection } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useCollection } from "react-firebase-hooks/firestore"
 
 const provider = new GoogleAuthProvider();
 
 export default function Builder() {
-  const [user] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
 
   const login = () => {
     signInWithPopup(auth, provider);
@@ -21,6 +22,10 @@ export default function Builder() {
   const logout = () => {
     signOut(auth);
   };
+
+  if (loading){
+    return <div>Loading...</div>
+  }
 
   if (user) {
     return (
@@ -42,9 +47,11 @@ function Form() {
 
 function Resume(props:{user:any}){
 
+    const [value, loading, error] = useCollection(query(collection(db, "resumes")))
+
     if(props.user){
         const [currentResume, setCurrentResume] = useState([])
-        const q = query(collection(db, "resumes"), where("email", "==", props.user.email));
+        const q = query(collection(db, "resumes"));
 
         const resumes = onSnapshot(q, (querySnapshot) => {
             const resumes: any = [];
@@ -55,13 +62,15 @@ function Resume(props:{user:any}){
         });
 
         return(
-            <div>
+            <Suspense fallback={<div>Loading...</div>}>
+
+                <button onClick={() => console.log(value?.docs)}> test </button>
                 {
                     currentResume.map((item:any,key:number) => (
                         <div key={key}>{item.name}</div>
                     ))
                 }
-            </div>
+            </Suspense>
         )
 
     }

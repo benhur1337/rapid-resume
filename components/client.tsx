@@ -2,10 +2,23 @@
 
 import { useState } from "react"
 
+import { auth } from '@/firebase'
+import { useAuthState } from "react-firebase-hooks/auth"
+
+
 export function Menu(){
+
+  const [user] = useAuthState(auth)
+
+  const profilePic = user?.photoURL
+
   return(
-    <div className="flex flex-row fixed p-6 w-screen bg-black">
+    <div className="flex flex-row fixed justify-between items-center p-6 w-screen bg-black">
       <strong className="flex flex-row gap-4 justify-evenly items-center text-3xl tracking-tighter font-extrabold">Rapid Resume</strong>
+      {
+        profilePic? <img className="rounded-full" src={profilePic?.toString()} height={30} width={30}/> : <></>
+      }
+      
     </div>
   )
 }
